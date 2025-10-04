@@ -51,7 +51,7 @@ export default function StickerMap() {
             title={spot.name}
             position={{ lat: spot.lat, lng: spot.lng }}
             icon={{
-              url: spot.file?.path,
+              url: spot.file?.path!,
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
