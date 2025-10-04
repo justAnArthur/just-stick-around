@@ -9,7 +9,6 @@ const Map = dynamic(() => import("./Map"), {
 
 export default function MapPage() {
   return <>
-    <AddPlaceDialog/>
     <Map/>
   </>
 }

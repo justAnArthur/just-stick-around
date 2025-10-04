@@ -11,7 +11,7 @@ export function useCurrentLocation() {
 
   useEffect(() => {
     if (!navigator.geolocation)
-      throw new Error('Geolocation not supported')
+      return
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -21,7 +21,7 @@ export function useCurrentLocation() {
         })
       },
       (err) => {
-        throw new Error(err.message)
+        console.error(err)
       },
       { enableHighAccuracy: true }
     )

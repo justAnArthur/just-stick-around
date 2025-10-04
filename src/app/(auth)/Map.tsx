@@ -1,11 +1,9 @@
-import { GoogleMap, Marker, useLoadScript } from '@react-google-maps/api'
-import { useState } from "react"
-import { spots } from "@/app/(auth)/spots"
+"use client"
 
-const containerStyle = {
-  width: '100%',
-  height: '100vh'
-}
+import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-maps/api'
+import { useEffect, useState } from "react"
+import { getSpotsForCoordinates } from "@/app/(auth)/Map.actions"
+import type { SpotWithFile } from "@/database/schema"
 
 const defaultCenter = ({
   lat: 50.067005,
@@ -17,41 +15,46 @@ export default function StickerMap() {
 
   const [map, setMap] = useState<google.maps.Map | undefined>()
 
-  const spots = map && map.getBounds() &&
-    getSpotsForCoordinates(map.getBounds()!)
+  const [spots, setSpots] = useState<SpotWithFile[]>()
+
+  function loadSpots() {
+    if (!map)
+      return
+
+    const bounds = map.getBounds()
+
+    if (!bounds)
+      return
+
+    getSpotsForCoordinates(bounds.toJSON()).then(setSpots)
+  }
+
+  useEffect(() => {
+    loadSpots()
+  }, [])
 
   if (!isLoaded)
     return <div>Loading Map...</div>
 
   return (
     <GoogleMap
+      {...mapProps}
       onLoad={setMap}
-      mapContainerStyle={containerStyle} center={defaultCenter} zoom={13}
-      options={{
-        fullscreenControl: false,
-        zoomControl: false,
-        mapTypeControl: false,
-        streetViewControl: false,
-        rotateControl: false,
-        scaleControl: false,
-        panControl: false
-      }}
-      onBoundsChanged={() => {
-        // todo
-      }}
+      center={defaultCenter}
+      onBoundsChanged={() => loadSpots()}
     >
       {spots?.map((spot) => {
         const size = 100
         return (
           <Marker
             key={spot.id}
+            title={spot.name}
             position={{ lat: spot.lat, lng: spot.lng }}
             icon={{
-              url: spot.stickerUrl,
+              url: spot.file?.path,
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
-            title={spot.name}
           />
         )
       })}
@@ -59,7 +62,22 @@ export default function StickerMap() {
   )
 }
 
-function getSpotsForCoordinates(bounds: google.maps.LatLngBounds) {
-  /*todo filtering*/
-  return spots
+const containerStyle = {
+  width: '100%',
+  height: '100vh'
 }
+
+const mapProps: GoogleMapProps = {
+  zoom: 13,
+  mapContainerStyle: containerStyle,
+  options: {
+    fullscreenControl: false,
+    zoomControl: false,
+    mapTypeControl: false,
+    streetViewControl: false,
+    rotateControl: false,
+    scaleControl: false,
+    panControl: false
+  }
+}
+

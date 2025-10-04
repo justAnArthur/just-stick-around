@@ -1,8 +1,8 @@
 "use client"
 
-import { FC, ReactNode } from "react"
+import type { FC, ReactNode } from "react"
 import { PermissionsCheckDialog } from "@/app/(auth)/PermissionsCheckDialog"
-import { openAddPlaceDialog } from "@/app/(auth)/AddPlaceDialog"
+import { AddPlaceDialog, openAddPlaceDialog } from "@/app/(auth)/AddPlaceDialog"
 
 export default function AuthLayout(props: { children: ReactNode }) {
   return <>
@@ -10,6 +10,7 @@ export default function AuthLayout(props: { children: ReactNode }) {
 
     <Navigation/>
 
+    <AddPlaceDialog/>
     <PermissionsCheckDialog permissions={['camera', 'geolocation']}/>
   </>
 }

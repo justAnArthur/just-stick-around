@@ -1,8 +1,9 @@
 "use client"
 
-import { FC, FormEvent, ReactNode, useEffect, useMemo, useState } from "react"
+import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
 import { useCamera, useCurrentLocation } from "@/lib/utils"
-import { spots } from "@/app/(auth)/spots"
+import { getAvailableSpots } from "@/app/(auth)/AddPlaceDialog.actions"
+import { Spot } from "@/database/schema"
 
 const openListeners = [] as (() => void)[]
 
@@ -29,7 +30,7 @@ export const AddPlaceDialog: FC = () => {
     return null
 
   return (
-    <div className="grid place-content-center">
+    <div className="grid place-content-center fixed z-50 inset-x-0 bottom-0 bg-white p-4">
       <AddPlaceCheckWrapper>
         <AddPlaceForm/>
       </AddPlaceCheckWrapper>
@@ -42,8 +43,14 @@ export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
 ) => {
   const currentLocation = useCurrentLocation()
 
-  const availableSpots = useMemo(() => currentLocation &&
-    getAvailableSpots(currentLocation.lat, currentLocation.lng), [currentLocation])
+  const [availableSpots, setAvailableSpots] = useState<Spot[]>()
+
+  useEffect(() => {
+    if (!currentLocation)
+      return
+
+    getAvailableSpots(currentLocation.lat, currentLocation.lng).then(setAvailableSpots)
+  }, [currentLocation])
 
   if (!(currentLocation && availableSpots))
     return <p>Loading</p>
@@ -96,9 +103,3 @@ export const AddPlaceForm: FC = () => {
   )
 }
 
-function getAvailableSpots(lat: number, lng: number, maxDistance: number = 0.001 /* roughly within 100 meters */) {
-  return spots.filter(spot => {
-    const distance = Math.sqrt((spot.lat - lat) ** 2 + (spot.lng - lng) ** 2)
-    return distance < maxDistance
-  })
-}
