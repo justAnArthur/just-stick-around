@@ -30,7 +30,7 @@ export const spots = pgTable(
 )
 
 export type Spot = typeof spots.$inferSelect
-export type SpotWithFile = Spot & { file: File | null }
+export type SpotWithFileNUsers = Spot & { file: File | null, usersToSpots: UsersToSpots[] }
 
 export const spotsRelations = relations(spots, ({ many, one }) => ({
   usersToSpots: many(usersSpots),
@@ -50,6 +50,8 @@ export const usersSpots = pgTable(
     t.primaryKey({ columns: [s.userId, s.spotId] })
   ]
 )
+
+export type UsersToSpots = typeof usersSpots.$inferSelect
 
 export const usersToGroupsRelations = relations(usersSpots, ({ one }) => ({
   spot: one(spots, {

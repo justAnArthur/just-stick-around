@@ -1,9 +1,9 @@
 "use client"
 
 import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-maps/api'
-import { useEffect, useState } from "react"
+import { useState, useRef } from "react"
 import { getSpotsForCoordinates } from "@/app/(auth)/Map.actions"
-import type { SpotWithFile } from "@/database/schema"
+import type { SpotWithFileNUsers } from "@/database/schema"
 
 const defaultCenter = ({
   lat: 50.067005,
@@ -15,9 +15,10 @@ export default function StickerMap() {
 
   const [map, setMap] = useState<google.maps.Map | undefined>()
 
-  const [spots, setSpots] = useState<SpotWithFile[]>()
+  const [spots, setSpots] = useState<SpotWithFileNUsers[]>()
 
-  function loadSpots() {
+
+  async function loadSpots() {
     if (!map)
       return
 
@@ -26,12 +27,19 @@ export default function StickerMap() {
     if (!bounds)
       return
 
-    getSpotsForCoordinates(bounds.toJSON()).then(setSpots)
+    setSpots(await getSpotsForCoordinates(bounds.toJSON()))
   }
 
-  useEffect(() => {
-    loadSpots()
-  }, [])
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  function debouncedLoadSpots() {
+    if (debounceRef.current)
+      clearTimeout(debounceRef.current)
+
+    debounceRef.current = setTimeout(() => {
+      loadSpots()
+    }, 2000)
+  }
 
   if (!isLoaded)
     return <div>Loading Map...</div>
@@ -41,7 +49,7 @@ export default function StickerMap() {
       {...mapProps}
       onLoad={setMap}
       center={defaultCenter}
-      onBoundsChanged={() => loadSpots()}
+      onBoundsChanged={debouncedLoadSpots}
     >
       {spots?.map((spot) => {
         const size = 100
@@ -51,7 +59,7 @@ export default function StickerMap() {
             title={spot.name}
             position={{ lat: spot.lat, lng: spot.lng }}
             icon={{
-              url: spot.file?.path!,
+              url: spot.usersToSpots?.length > 0 ? '/hackyear.png' : spot.file?.path!,
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}

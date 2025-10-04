@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function useCurrentLocation() {
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null)
+  const [position, setPosition] = useState<{ lat: number, lng: number } | null>(null)
 
   useEffect(() => {
     if (!navigator.geolocation)

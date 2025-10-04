@@ -2,7 +2,7 @@
 
 import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
 import { useCamera, useCurrentLocation } from "@/lib/utils"
-import { getAvailableSpots } from "@/app/(auth)/AddPlaceDialog.actions"
+import { getAvailableSpots, spotPlace } from "@/app/(auth)/AddPlaceDialog.actions"
 import { Spot } from "@/database/schema"
 
 const openListeners = [] as (() => void)[]
@@ -62,12 +62,17 @@ export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
 }
 
 export const AddPlaceForm: FC = () => {
+  const currentLocation = useCurrentLocation()
+
   const { image, captureImage, again, videoRef, canvasRef } = useCamera()
 
-  function handleOnSubmit(e: FormEvent) {
+  async function handleOnSubmit(e: FormEvent) {
     e.preventDefault()
 
+    if (!currentLocation || !image)
+      return
 
+    await spotPlace(image, currentLocation.lat, currentLocation.lng)
   }
 
   return (
