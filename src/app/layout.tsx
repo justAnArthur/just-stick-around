@@ -1,11 +1,9 @@
-import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import type { ReactNode } from "react"
+import type {Metadata, Viewport} from "next"
+import {Geist, Geist_Mono} from "next/font/google"
+import type {ReactNode} from "react"
 
 import "@/styles/globals.css"
-
-import { Header } from "@/components/header"
-import { Providers } from "./providers"
+import {Providers} from "./providers"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -30,21 +28,19 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({
-    children
-}: Readonly<{
+                                       children
+                                   }: Readonly<{
     children: ReactNode
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body
-                className={`${geistSans.variable} ${geistMono.variable} flex min-h-svh flex-col antialiased`}
-            >
-                <Providers>
-                    <Header />
-
-                    {children}
-                </Providers>
-            </body>
+        <body
+            className={`${geistSans.variable} ${geistMono.variable} flex min-h-svh flex-col antialiased`}
+        >
+        <Providers>
+            {children}
+        </Providers>
+        </body>
         </html>
     )
 }
