@@ -21,7 +21,7 @@ export function useCurrentLocation() {
         })
       },
       (err) => {
-        console.error(err)
+        console.error(err, JSON.stringify(err))
       },
       { enableHighAccuracy: true }
     )
@@ -33,12 +33,15 @@ export function useCurrentLocation() {
 export function useCamera() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [error, setError] = useState('')
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment")
 
   useEffect(() => {
+    let stream: MediaStream | null = null
+
     async function initCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }, // use rear camera on mobile
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode },
           audio: false
         })
         if (videoRef.current) {
@@ -53,17 +56,14 @@ export function useCamera() {
     initCamera()
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop())
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop())
       }
     }
-  }, [])
+  }, [facingMode])
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [image, setImage] = useState<string | null>(null)
-
 
   function handleCapture() {
     const video = videoRef.current
@@ -84,6 +84,14 @@ export function useCamera() {
     setImage(null)
   }
 
-  return { image, captureImage: handleCapture, again: handleAgain, videoRef, canvasRef, error }
+  return {
+    image,
+    captureImage: handleCapture,
+    again: handleAgain,
+    videoRef,
+    canvasRef,
+    error,
+    facingMode,
+    setFacingMode
+  }
 }
-

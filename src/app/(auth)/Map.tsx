@@ -1,9 +1,12 @@
 "use client"
 
 import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-maps/api'
-import { useState, useRef } from "react"
+import { useRef, useState } from "react"
 import { getSpotsForCoordinates } from "@/app/(auth)/Map.actions"
 import type { SpotWithFileNUsers } from "@/database/schema"
+import { useCurrentLocation } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { openSpotDetailsDialog } from "@/app/(auth)/SpotDetailsDialog"
 
 const defaultCenter = ({
   lat: 50.067005,
@@ -16,7 +19,6 @@ export default function StickerMap() {
   const [map, setMap] = useState<google.maps.Map | undefined>()
 
   const [spots, setSpots] = useState<SpotWithFileNUsers[]>()
-
 
   async function loadSpots() {
     if (!map)
@@ -41,8 +43,10 @@ export default function StickerMap() {
     }, 2000)
   }
 
+  const currentLocation = useCurrentLocation()
+
   if (!isLoaded)
-    return <div>Loading Map...</div>
+    return <Skeleton className="w-full h-full"/>
 
   return (
     <GoogleMap
@@ -63,9 +67,21 @@ export default function StickerMap() {
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
+            onClick={() => openSpotDetailsDialog(spot)}
           />
         )
       })}
+
+      {currentLocation
+        && <Marker
+          position={currentLocation}
+          title="You are here"
+          icon={{
+            url: '/globe.svg',
+            scaledSize: new google.maps.Size(100, 100),
+            anchor: new google.maps.Point(50, 50)
+          }}
+        />}
     </GoogleMap>
   )
 }
