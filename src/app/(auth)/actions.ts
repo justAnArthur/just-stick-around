@@ -12,17 +12,26 @@ export async function getSpotsForCoordinates(bounds: google.maps.LatLngBoundsLit
     throw new Error("Not authenticated")
 
   return (
-    db.query.spots.findMany({
+    (await db.query.spots.findMany({
       with: {
         file: true,
         usersToSpots: {
-          where: (usersToSpot, { eq }) =>
-            eq(usersToSpot.userId, user.id),
+          where: (usersToSpots, { eq }) =>
+            eq(usersToSpots.userId, user.id),
           with: {
             file: true
           }
+        },
+        creator: true,
+        dependsOnSpot: {
+          with: {
+            usersToSpots: {
+              where: (usersToSpots, { eq }) => eq(usersToSpots.userId, user.id)
+            }
+          }
         }
       }
-    })
+    }))
+      .filter(spot => !spot.dependsOnSpot || spot.dependsOnSpot.usersToSpots.length > 0)
   )
 }

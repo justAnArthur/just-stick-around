@@ -1,6 +1,6 @@
 import * as t from "drizzle-orm/pg-core"
 import { pgTable } from "drizzle-orm/pg-core"
-import { users } from "../../auth-schema"
+import { User, users } from "../../auth-schema"
 import { randomUUID } from "crypto"
 import { relations } from "drizzle-orm/relations"
 
@@ -26,12 +26,18 @@ export const spots = pgTable(
     lat: t.doublePrecision().notNull(),
     lng: t.doublePrecision().notNull(),
 
-    fileId: t.text("file_id").references(() => files.id).notNull()
+    fileId: t.text("file_id").references(() => files.id).notNull(),
+
+    dependsOnSpotsId: t.text("depends_on_spot_id")
   }
 )
 
 export type Spot = typeof spots.$inferSelect
-export type SpotWithFileNUsers = Spot & { file: File | null, usersToSpots: (UsersToSpots & { file: File | null })[] }
+export type SpotWithFileNUsersNCreator = Spot & {
+  file: File | null,
+  usersToSpots: (UsersToSpots & { file: File | null })[],
+  creator: User | null
+}
 
 export const spotsRelations = relations(spots, ({ many, one }) => ({
   usersToSpots: many(usersSpots),
@@ -43,7 +49,11 @@ export const spotsRelations = relations(spots, ({ many, one }) => ({
     fields: [spots.createdBy],
     references: [users.id]
   }),
-  attachments: many(spotsAttachments)
+  attachments: many(spotsAttachments),
+  dependsOnSpot: one(spots, {
+    fields: [spots.dependsOnSpotsId],
+    references: [spots.id]
+  })
 }))
 
 export const spotsAttachments = pgTable(

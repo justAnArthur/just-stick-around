@@ -3,7 +3,7 @@
 import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-maps/api'
 import { useRef, useState } from "react"
 import { getSpotsForCoordinates } from "@/app/(auth)/actions"
-import type { SpotWithFileNUsers } from "@/database/schema"
+import type { SpotWithFileNUsersNCreator } from "@/database/schema"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLocationContext } from "@/app/(auth)/LocationProvider"
 import { useRouter } from "next/navigation"
@@ -22,7 +22,7 @@ export default function StickersMap() {
   const [map, setMap] = useState<google.maps.Map | undefined>()
   const currentLocation = useLocationContext()
 
-  const [spots, setSpots] = useState<SpotWithFileNUsers[]>()
+  const [spots, setSpots] = useState<SpotWithFileNUsersNCreator[]>()
 
   async function loadSpots() {
     if (!map)
@@ -35,6 +35,8 @@ export default function StickersMap() {
 
     setSpots(await getSpotsForCoordinates(bounds.toJSON()))
   }
+
+  console.log({ spots })
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -69,11 +71,12 @@ export default function StickersMap() {
             title={spot.name}
             position={{ lat: spot.lat, lng: spot.lng }}
             icon={{
-              url: spot.usersToSpots?.length > 0 ? spot.file?.path! : '/placeholder.png',
+              url: spot.usersToSpots?.length > 0 ? spot.file?.path! : spot.creator ? '/placeholder-community.png' : '/placeholder.png',
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
             onClick={() => router.push(`/spots/${spot.id}`)}
+            options={{ zIndex: spot.usersToSpots?.length > 0 ? 2 : 1 }}
           />
         )
       })}
@@ -87,6 +90,7 @@ export default function StickersMap() {
             scaledSize: new google.maps.Size(50, 50),
             anchor: new google.maps.Point(25, 25)
           }}
+          options={{ zIndex: 1 }}
         />}
     </GoogleMap>
   )

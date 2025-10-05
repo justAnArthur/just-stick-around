@@ -1,0 +1,1 @@
+ALTER TABLE "spots" ADD COLUMN "depends_on_spot_id" text;

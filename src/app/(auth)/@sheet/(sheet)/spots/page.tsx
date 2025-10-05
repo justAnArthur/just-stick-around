@@ -17,7 +17,7 @@ export default async function Spots() {
 
           <b className="flex-1">{spot.name}</b>
 
-          <p>{spot.usersToSpots[0]?.createdAt?.toLocaleDateString()}</p>
+          <p>{spot.usersToSpots[0]?.createdAt?.toUTCString().replace('GTM', '')}</p>
         </div>
       ))}
 
