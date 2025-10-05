@@ -13,5 +13,5 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true
   },
-  trustedOrigins: ['https://355b4dc2be30.ngrok-free.app', 'http://localhost:3000']
+  trustedOrigins: process.env.NEXT_PUBLIC_TRUSTED_ORIGINS.split(',')
 })
