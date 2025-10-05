@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Better Auth Next.js Starter",
+  title: "Just Stick Around",
   description:
-    "Better Auth Next.js Starter with Postgres, Drizzle, shadcn/ui and Tanstack Query"
+    "Web application (cross-platform) to discover and explore new places and sticking them into your digital profile as stickers on luggage."
 }
 
 export const viewport: Viewport = {
