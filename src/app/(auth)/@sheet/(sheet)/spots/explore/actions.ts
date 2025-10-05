@@ -67,6 +67,7 @@ async function saveBase64File(base64: string, fileName: string) {
 
 export async function saveBufferFile(buffer: Buffer, fileName: string) {
   const filePath = path.join(process.cwd(), "public", fileName)
+  console.log(filePath, process.cwd(), fileName)
 
   await import('fs').then(fs => fs.promises.writeFile(filePath, buffer))
 
