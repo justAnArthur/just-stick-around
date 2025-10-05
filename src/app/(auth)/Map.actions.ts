@@ -17,7 +17,10 @@ export async function getSpotsForCoordinates(bounds: google.maps.LatLngBoundsLit
         file: true,
         usersToSpots: {
           where: (usersToSpot, { eq }) =>
-            eq(usersToSpot.userId, user.id)
+            eq(usersToSpot.userId, user.id),
+          with: {
+            file: true
+          }
         }
       }
     })

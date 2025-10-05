@@ -5,22 +5,25 @@ import { AddPlaceDialog, openAddPlaceDialog } from "@/app/(auth)/AddPlaceDialog"
 import Link from "next/link"
 import { MapIcon, PlusIcon, UserIcon } from "lucide-react"
 import { SpotDetailsDialog } from "@/app/(auth)/SpotDetailsDialog"
+import { LocationProvider } from "@/app/(auth)/LocationProvider"
 
 export default function AuthLayout(props: { children: ReactNode }) {
   return <>
-    {props.children}
+    <LocationProvider>
+      {props.children}
 
-    <Navigation/>
+      <Navigation/>
 
-    <SpotDetailsDialog/>
-    <AddPlaceDialog/>
+      <SpotDetailsDialog/>
+      <AddPlaceDialog/>
+    </LocationProvider>
   </>
 }
 
 const Navigation: FC = () => {
   return (
     <nav
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-card text-card-foreground px-2 py-1 rounded-full shadow-md border border-border">
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-card text-card-foreground px-2 py-1 rounded-full shadow-md border border-border">
       <ul className="flex items-center gap-3">
         <li>
           <Link href="/" className="block hover:bg-background p-3 hover:no-underline rounded-md">

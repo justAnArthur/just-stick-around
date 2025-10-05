@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function useCurrentLocation() {
+export function useCurrentLocation(onError?: (error: GeolocationPositionError) => void) {
   const [position, setPosition] = useState<{ lat: number, lng: number } | null>(null)
 
   useEffect(() => {
@@ -20,9 +20,7 @@ export function useCurrentLocation() {
           lng: pos.coords.longitude
         })
       },
-      (err) => {
-        console.error(err, JSON.stringify(err))
-      },
+      onError,
       { enableHighAccuracy: true }
     )
   }, [])

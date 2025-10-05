@@ -1,13 +1,16 @@
 "use client"
 
 import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
-import { useCamera, useCurrentLocation } from "@/lib/utils"
+import { useCamera } from "@/lib/utils"
 import { getAvailableSpots, spotPlace } from "@/app/(auth)/AddPlaceDialog.actions"
 import type { Spot } from "@/database/schema"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { RefreshCcwIcon } from "lucide-react"
+import { LoaderCircleIcon, RefreshCcwIcon } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useLocationContext } from "@/app/(auth)/LocationProvider"
+import { toast } from "sonner"
+import { mapInstance } from "@/app/(auth)/Map"
 
 const openListeners = [] as (() => void)[]
 
@@ -30,14 +33,20 @@ export const AddPlaceDialog: FC = () => {
     }
   }, [])
 
+  function handleOnSubmit(spot: Spot) {
+    setOpen(false)
+
+    mapInstance.setCenter({ lat: spot.lat, lng: spot.lng })
+  }
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent side="bottom" className="max-w-2xl mx-auto rounded-md bottom-4">
+      <SheetContent side="bottom" className="max-w-2xl mx-auto inset-x-4 rounded-md bottom-4">
         <SheetHeader>
           <SheetTitle className="sr-only">Adding new spot</SheetTitle>
           <main>
             <AddPlaceCheckWrapper>
-              <AddPlaceForm/>
+              <AddPlaceForm onSubmit={handleOnSubmit}/>
             </AddPlaceCheckWrapper>
           </main>
         </SheetHeader>
@@ -49,7 +58,7 @@ export const AddPlaceDialog: FC = () => {
 export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
   { children }
 ) => {
-  const currentLocation = useCurrentLocation()
+  const currentLocation = useLocationContext()
 
   const [availableSpots, setAvailableSpots] = useState<Spot[]>()
 
@@ -75,18 +84,33 @@ export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
   </>
 }
 
-export const AddPlaceForm: FC = () => {
-  const currentLocation = useCurrentLocation()
+export const AddPlaceForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
+  { onSubmit }
+) => {
+  const currentLocation = useLocationContext()
 
   const { image, captureImage, again, setFacingMode, videoRef, canvasRef } = useCamera()
 
+  const [loading, setLoading] = useState(false)
+
   async function handleOnSubmit(e: FormEvent) {
     e.preventDefault()
+    setLoading(true)
 
     if (!currentLocation || !image)
       return
 
-    await spotPlace(image, currentLocation.lat, currentLocation.lng)
+    try {
+      const spot = await spotPlace(image, currentLocation.lat, currentLocation.lng)
+
+      toast.success('Spot added successfully!')
+
+      onSubmit?.(spot)
+    } catch (error: any) {
+      toast.error(error.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -100,12 +124,16 @@ export const AddPlaceForm: FC = () => {
           />
 
           <div className="flex items-center gap-4">
-            <Button onClick={again} variant="outline" className="font-semibold text-xl">
+            <Button onClick={again} variant="outline" size="lg" className="font-semibold text-xl">
               Retake
             </Button>
 
-            <Button type="submit" className="flex-1 font-semibold text-xl">
-              Submit
+            <Button type="submit" size="lg" className="flex-1 font-semibold text-xl flex items-center gap-1"
+                    disabled={loading}>
+              {loading && <LoaderCircleIcon size={20} className="animate-spin"/>}
+              <div>
+                Submit
+              </div>
             </Button>
           </div>
         </>

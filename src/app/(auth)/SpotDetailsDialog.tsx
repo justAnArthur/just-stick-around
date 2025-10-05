@@ -25,19 +25,22 @@ export const SpotDetailsDialog: FC = () => {
 
   const spot = openOrSpot
 
-  console.log({ openOrSpot })
-
   return (
     <Sheet open={!!openOrSpot} onOpenChange={setOpen}>
-      <SheetContent side="bottom" className="max-w-2xl mx-auto rounded-md bottom-4">
+      <SheetContent side="bottom" className="max-w-2xl mx-auto rounded-md inset-x-4 bottom-4">
         <SheetHeader>
           {typeof spot !== 'boolean'
             && <main className="flex flex-col gap-4">
-              <div className="aspect-[4/3] bg-muted grid place-content-center rounded-md">
-                <img
-                  src={spot.usersToSpots?.length > 0 ? '/hackyear.png' : spot.file?.path!}
-                  className="w-44 h-44"
-                />
+              <div className="aspect-[4/3] bg-muted flex flex-col items-center justify-center rounded-md p-4 sm:p-6 overflow-hidden">
+                {spot.usersToSpots?.length > 0
+                  ? <div className="relative h-full">
+                    <img src={spot.file?.path} className="absolute -bottom-1/16 -left-1/4 w-1/2 -rotate-7" alt=""/>
+                    <img src={spot.usersToSpots[0].file?.path} className="rounded-md overflow-hidden h-full" alt=""/>
+                  </div>
+                  : <img
+                    src="/vercel.svg"
+                    className="w-44 h-44"
+                  />}
               </div>
 
               <div>

@@ -4,14 +4,16 @@ import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-
 import { useRef, useState } from "react"
 import { getSpotsForCoordinates } from "@/app/(auth)/Map.actions"
 import type { SpotWithFileNUsers } from "@/database/schema"
-import { useCurrentLocation } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { openSpotDetailsDialog } from "@/app/(auth)/SpotDetailsDialog"
+import { useLocationContext } from "@/app/(auth)/LocationProvider"
 
 const defaultCenter = ({
   lat: 50.067005,
   lng: 19.991579
 })
+
+export let mapInstance: google.maps.Map
 
 export default function StickerMap() {
   const { isLoaded } = useLoadScript({ googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY! })
@@ -43,7 +45,7 @@ export default function StickerMap() {
     }, 2000)
   }
 
-  const currentLocation = useCurrentLocation()
+  const currentLocation = useLocationContext()
 
   if (!isLoaded)
     return <Skeleton className="w-full h-full"/>
@@ -51,19 +53,23 @@ export default function StickerMap() {
   return (
     <GoogleMap
       {...mapProps}
-      onLoad={setMap}
+      onLoad={map => {
+        setMap(map)
+        mapInstance = map
+      }}
+      mapContainerClassName={spots === undefined ? "animate-pulse" : ""}
       center={defaultCenter}
       onBoundsChanged={debouncedLoadSpots}
     >
       {spots?.map((spot) => {
-        const size = 100
+        const size = spot.usersToSpots?.length > 0 ? 100 : 60
         return (
           <Marker
             key={spot.id}
             title={spot.name}
             position={{ lat: spot.lat, lng: spot.lng }}
             icon={{
-              url: spot.usersToSpots?.length > 0 ? '/hackyear.png' : spot.file?.path!,
+              url: spot.usersToSpots?.length > 0 ? spot.file?.path! : '/vercel.svg',
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
@@ -77,9 +83,9 @@ export default function StickerMap() {
           position={currentLocation}
           title="You are here"
           icon={{
-            url: '/globe.svg',
-            scaledSize: new google.maps.Size(100, 100),
-            anchor: new google.maps.Point(50, 50)
+            url: '/blue-dot.png',
+            scaledSize: new google.maps.Size(20, 20),
+            anchor: new google.maps.Point(10, 10)
           }}
         />}
     </GoogleMap>
