@@ -1,9 +1,7 @@
 import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { notFound } from "next/navigation"
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { db } from "@/database/db"
 import Link from "next/link"
+import { getSpotDetails } from "@/app/(auth)/@sheet/(sheet)/spots/[id]/actions"
 
 type Params = {
   id: string
@@ -45,23 +43,4 @@ export default async function SpotDetails(props: { params: Promise<Params> }) {
       </Link>
     </SheetFooter>
   </>
-}
-
-async function getSpotDetails(spotId: string) {
-  const user = (await auth.api.getSession({ headers: await headers() })).user
-  if (!user)
-    throw new Error("Not authenticated")
-
-  return db.query.spots.findFirst({
-    where: (spots, { eq }) => eq(spots.id, spotId),
-    with: {
-      file: true,
-      usersToSpots: {
-        where: (usersToSpots, { eq }) => eq(usersToSpots.userId, user.id),
-        with: {
-          file: true
-        }
-      }
-    }
-  })
 }

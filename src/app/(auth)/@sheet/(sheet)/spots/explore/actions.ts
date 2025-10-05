@@ -7,11 +7,15 @@ import OpenAI from "openai"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import path from "path"
+import { getSpotDetails } from "@/app/(auth)/@sheet/(sheet)/spots/[id]/actions"
 
-export async function getAvailableSpots(lat: number, lng: number, maxDistance: number = 0.001 /* roughly within 100 meters */) {
+export async function getAvailableSpots(lat: number, lng: number, maxDistance: number = 0.00314 /* roughly within 100 meters */) {
+  const user = (await auth.api.getSession({ headers: await headers() })).user
+  if (!user) throw new Error("Not authenticated")
+
   return (await db.select()
     .from(spots)
-    .leftJoin(usersSpots, eq(spots.id, usersSpots.spotId))
+    .leftJoin(usersSpots, and(eq(spots.id, usersSpots.spotId), eq(usersSpots.userId, user.id)))
     .where(and(
       sql`
         (6371 * acos(
@@ -28,12 +32,12 @@ export async function getAvailableSpots(lat: number, lng: number, maxDistance: n
     .map(({ spots }) => spots)
 }
 
-export async function spotPlace(image: string, lat: number, lng: number) {
+export async function spotPlace(image: string, spotId: string, lat: number, lng: number) {
   const user = (await auth.api.getSession({ headers: await headers() })).user
   if (!user)
     throw new Error("Not authenticated")
 
-  const [spot] = await getAvailableSpots(lat, lng)
+  const spot = await getSpotDetails(spotId)
   if (!spot)
     throw new Error('No spot found around you')
 

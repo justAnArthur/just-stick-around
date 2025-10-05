@@ -1,6 +1,6 @@
 "use client"
 
-import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
+import { FC, FormEvent, useEffect, useState } from "react"
 import { getAvailableSpots, spotPlace } from "./actions"
 import type { Spot } from "@/database/schema"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,6 +12,7 @@ import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useRouter } from "next/navigation"
 import { useCamera } from "@/lib/useCamera"
 import { mapInstance } from "@/app/(auth)/StickersMap"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ExploreSpot() {
   const router = useRouter()
@@ -26,28 +27,29 @@ export default function ExploreSpot() {
       <SheetTitle>Explore new spot</SheetTitle>
     </SheetHeader>
     <main className="p-4">
-      <ExploreSpotCheckWrapper>
-        <ExploreSpotForm onSubmit={handleOnSubmit}/>
-      </ExploreSpotCheckWrapper>
+      <ExploreSpotCheckWrapper onSubmit={handleOnSubmit}/>
     </main>
   </>
 }
 
-const ExploreSpotCheckWrapper: FC<{ children: ReactNode }> = (
-  { children }
+const ExploreSpotCheckWrapper: FC<{ onSubmit?: (spot: Spot) => void }> = (
+  props
 ) => {
   const currentLocation = useLocationContext()
 
   const [availableSpots, setAvailableSpots] = useState<Spot[]>()
+  const [selectedSpotId, setSelectedSpotId] = useState<string>()
 
   useEffect(() => {
     if (!currentLocation)
       return
 
-    getAvailableSpots(currentLocation.lat, currentLocation.lng).then(setAvailableSpots)
+    getAvailableSpots(currentLocation.lat, currentLocation.lng)
+      .then(spots => {
+        setAvailableSpots(spots)
+        setSelectedSpotId(spots[0]?.id)
+      })
   }, [currentLocation])
-
-  console.log(availableSpots)
 
   if (!(currentLocation && availableSpots))
     return <Skeleton className="w-full aspect-[4/3]"/>
@@ -56,16 +58,31 @@ const ExploreSpotCheckWrapper: FC<{ children: ReactNode }> = (
     return <div className="w-fill aspect-[4/3] grid place-content-center"><p>There is no spot around you 😬</p></div>
 
   return <>
-    <div className="border border-border rounded-md p-2 mb-4 text-center text-sm">
-      Spot found: <strong>{availableSpots[0].name}</strong>
+    <div
+      className="border border-border rounded-md p-2 mb-4 text-center text-sm flex items-center justify-center gap-2">
+      <span>
+        Spot found:
+      </span>
+      <Select value={selectedSpotId} onValueChange={setSelectedSpotId}>
+        <SelectTrigger>
+          <SelectValue/>
+        </SelectTrigger>
+        <SelectContent>
+          {availableSpots.map(spot => (
+            <SelectItem value={spot.id} key={spot.id}>
+              {spot.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
 
-    {children}
+    {selectedSpotId && <ExploreSpotForm spotId={selectedSpotId}  {...props} />}
   </>
 }
 
-const ExploreSpotForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
-  { onSubmit }
+const ExploreSpotForm: FC<{ onSubmit?: (spot: Spot) => void, spotId: string }> = (
+  { onSubmit, spotId }
 ) => {
   const currentLocation = useLocationContext()
 
@@ -81,7 +98,7 @@ const ExploreSpotForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
       return
 
     try {
-      const spot = await spotPlace(image, currentLocation.lat, currentLocation.lng)
+      const spot = await spotPlace(image, spotId, currentLocation.lat, currentLocation.lng)
 
       toast.success('Spot added successfully!')
 
