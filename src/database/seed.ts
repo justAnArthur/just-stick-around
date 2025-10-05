@@ -5,7 +5,7 @@ async function seedSpots() {
   const [file] = await db.insert(files)
     .values([
       {
-        path: '/vercel.svg'
+        path: '/placeholder.png'
       }
     ])
     .returning({ id: files.id })

@@ -1,14 +1,6 @@
 "use client"
 
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet
-} from "@/components/ui/field"
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { FormEvent, useState } from "react"
@@ -68,8 +60,7 @@ export default function AddSpot() {
     <form onSubmit={handleOnSubmit} className="p-4 overflow-y-auto">
       <FieldGroup>
         <FieldSet>
-          <FieldLegend>Basic</FieldLegend>
-          <FieldDescription>Basic input fields</FieldDescription>
+          <FieldLegend className="sr-only">Basic</FieldLegend>
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="name">Name</FieldLabel>

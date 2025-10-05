@@ -4,6 +4,7 @@ import { db } from "@/database/db"
 import { files, spots, usersSpots } from "@/database/schema"
 import { eq } from "drizzle-orm"
 import { alias } from "drizzle-orm/pg-core"
+import Link from "next/link"
 
 export default async function Spots() {
   const spots = await getSpots()
@@ -19,6 +20,10 @@ export default async function Spots() {
           <p>{spot.usersToSpots[0]?.createdAt?.toLocaleDateString()}</p>
         </div>
       ))}
+
+      <Link href="/spots/add">
+        Create new spot
+      </Link>
     </main>
   )
 }

@@ -4,7 +4,6 @@ import type { ReactNode } from "react"
 
 import "@/styles/globals.css"
 import { Providers } from "./providers"
-import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,8 +39,6 @@ export default function RootLayout({
     >
     <Providers>
       {children}
-
-      <Toaster />
     </Providers>
     </body>
     </html>

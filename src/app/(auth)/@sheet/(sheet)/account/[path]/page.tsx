@@ -1,5 +1,6 @@
 import { AccountView } from "@daveyplate/better-auth-ui"
 import { accountViewPaths } from "@daveyplate/better-auth-ui/server"
+import { SignOutButton } from "@/app/(auth)/@sheet/(sheet)/account/[path]/SignOutButton"
 
 export const dynamicParams = false
 
@@ -24,6 +25,7 @@ export default async function AccountPage({
           }
         }}
       />
+      {path && 'settings' && <SignOutButton/>}
     </main>
   )
 }

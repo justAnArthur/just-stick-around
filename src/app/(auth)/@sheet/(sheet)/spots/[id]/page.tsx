@@ -1,8 +1,9 @@
-import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { db } from "@/database/db"
+import Link from "next/link"
 
 type Params = {
   id: string
@@ -27,7 +28,7 @@ export default async function SpotDetails(props: { params: Promise<Params> }) {
               <img src={spot.usersToSpots[0].file?.path} className="rounded-md overflow-hidden h-full" alt=""/>
             </div>
             : <img
-              src="/vercel.svg"
+              src="/placeholder.png"
               className="w-44 h-44"
             />}
         </div>
@@ -37,6 +38,12 @@ export default async function SpotDetails(props: { params: Promise<Params> }) {
       <SheetTitle>{spot.name}</SheetTitle>
       <SheetDescription className="mt-2">{spot.description}</SheetDescription>
     </SheetHeader>
+
+    <SheetFooter>
+      <Link href={"/spots/" + spot.id + "/users"}>
+        Other users explorations
+      </Link>
+    </SheetFooter>
   </>
 }
 

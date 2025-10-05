@@ -2,7 +2,7 @@
 
 import type { FC, ReactNode } from "react"
 import Link from "next/link"
-import { MapIcon, PlusIcon, StickerIcon } from "lucide-react"
+import { MapIcon, StickerIcon, TelescopeIcon, UserIcon } from "lucide-react"
 import { LocationProvider } from "@/app/(auth)/LocationProvider"
 
 export default function AuthLayout(props: { children: ReactNode, sheet: ReactNode }) {
@@ -33,11 +33,17 @@ const Navigation: FC = () => {
           </Link>
         </li>
         <li>
-          <Link href="/spots/add"
+          <Link href="/account/settings"
                 className="block hover:bg-background active:bg-background p-3 hover:no-underline rounded-xl">
-            <PlusIcon size={20}/>
+            <UserIcon size={20}/>
           </Link>
+        </li>
 
+        <li>
+          <Link href="/spots/explore"
+                className="block hover:bg-background active:bg-background p-3 hover:no-underline rounded-xl">
+            <TelescopeIcon size={20}/>
+          </Link>
         </li>
       </ul>
     </nav>
