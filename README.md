@@ -4,7 +4,11 @@
 
 This project is a part of the [HackYear25](https://hackyeah.pl) challenge. "Travel" category
 
-### [Demo](https://just-stick-around.justadomainname.dev/)
+## [Demo](https://just-stick-around.justadomainname.dev/)
+
+Just `email` and `password` -> click on fourth icon -> and try to make a photo with hack year.
+
+---
 
 ## Develop
 
