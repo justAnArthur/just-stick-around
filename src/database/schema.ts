@@ -18,6 +18,7 @@ export const spots = pgTable(
   {
     id,
     createdAt,
+    createdBy: t.text("created_by").references(() => users.id),
 
     name: t.text().notNull(),
     description: t.text().notNull(),
@@ -36,6 +37,36 @@ export const spotsRelations = relations(spots, ({ many, one }) => ({
   usersToSpots: many(usersSpots),
   file: one(files, {
     fields: [spots.fileId],
+    references: [files.id]
+  }),
+  creator: one(users, {
+    fields: [spots.createdBy],
+    references: [users.id]
+  }),
+  attachments: many(spotsAttachments)
+}))
+
+export const spotsAttachments = pgTable(
+  'spots_attachments',
+  {
+    spotId: t.text("spot_id").references(() => spots.id).notNull(),
+    fileId: t.text("file_id").references(() => files.id).notNull(),
+    createdAt
+  },
+  s => [
+    t.primaryKey({ columns: [s.spotId, s.fileId] })
+  ]
+)
+
+export type SpotToAttachments = typeof spotsAttachments.$inferSelect
+
+export const spotsToAttachmentsRelations = relations(spotsAttachments, ({ one }) => ({
+  spot: one(spots, {
+    fields: [spotsAttachments.spotId],
+    references: [spots.id]
+  }),
+  file: one(files, {
+    fields: [spotsAttachments.fileId],
     references: [files.id]
   })
 }))

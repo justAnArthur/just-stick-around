@@ -15,7 +15,7 @@ const defaultCenter = ({
 
 export let mapInstance: google.maps.Map
 
-export default function StickerMap() {
+export default function StickersMap() {
   const router = useRouter()
 
   const { isLoaded } = useLoadScript({ googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY! })
@@ -23,6 +23,7 @@ export default function StickerMap() {
   const currentLocation = useLocationContext()
 
   const [spots, setSpots] = useState<SpotWithFileNUsers[]>()
+
   async function loadSpots() {
     if (!map)
       return
@@ -36,6 +37,7 @@ export default function StickerMap() {
   }
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
   function debouncedLoadSpots() {
     if (debounceRef.current)
       clearTimeout(debounceRef.current)

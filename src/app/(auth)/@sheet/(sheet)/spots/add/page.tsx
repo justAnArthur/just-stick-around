@@ -1,89 +1,62 @@
 "use client"
 
-import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
-import { getAvailableSpots, spotPlace } from "./actions"
-import type { Spot } from "@/database/schema"
-import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet
+} from "@/components/ui/field"
+import { Textarea } from "@/components/ui/textarea"
+import { Input } from "@/components/ui/input"
+import { FormEvent, useState } from "react"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
-import { LoaderCircleIcon, RefreshCcwIcon } from "lucide-react"
-import { useLocationContext } from "@/app/(auth)/LocationProvider"
+import { LoaderCircleIcon } from "lucide-react"
+import { addSpot } from "@/app/(auth)/@sheet/(sheet)/spots/add/actions"
 import { toast } from "sonner"
-import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { mapInstance } from "@/app/(auth)/StickersMap"
 import { useRouter } from "next/navigation"
-import { useCamera } from "@/lib/useCamera"
 
-export default function AddPlace() {
+const CoordinatePicker = dynamic(() => import("./CoordinatePicker").then(module => module.CoordinatePicker), { ssr: false })
+
+export default function AddSpot() {
   const router = useRouter()
-
-  function handleOnSubmit() {
-    router.push('/')
-  }
-
-  return <>
-    <SheetHeader className="sr-only">
-      <SheetTitle>Adding new spot</SheetTitle>
-    </SheetHeader>
-    <main className="p-4">
-      <AddPlaceCheckWrapper>
-        <AddPlaceForm onSubmit={handleOnSubmit}/>
-      </AddPlaceCheckWrapper>
-    </main>
-  </>
-}
-
-const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
-  { children }
-) => {
-  const currentLocation = useLocationContext()
-
-  const [availableSpots, setAvailableSpots] = useState<Spot[]>()
-
-  useEffect(() => {
-    if (!currentLocation)
-      return
-
-    getAvailableSpots(currentLocation.lat, currentLocation.lng).then(setAvailableSpots)
-  }, [currentLocation])
-
-  console.log(availableSpots)
-
-  if (!(currentLocation && availableSpots))
-    return <Skeleton className="w-full aspect-[4/3]"/>
-
-  if (availableSpots.length === 0)
-    return <div className="w-fill aspect-[4/3] grid place-content-center"><p>There is no spot around you 😬</p></div>
-
-  return <>
-    <div className="border border-border rounded-md p-2 mb-4 text-center text-sm">
-      Spot found: <strong>{availableSpots[0].name}</strong>
-    </div>
-
-    {children}
-  </>
-}
-
-const AddPlaceForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
-  { onSubmit }
-) => {
-  const currentLocation = useLocationContext()
-
-  const { image, captureImage, again, setFacingMode, videoRef, canvasRef } = useCamera()
 
   const [loading, setLoading] = useState(false)
 
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
+  const [coords, setCoords] = useState<{ lat: number, lng: number }>()
+  const [photos, setPhotos] = useState<FileList | null>(null)
+  const [sticker, setStickers] = useState<File | null>(null)
+
   async function handleOnSubmit(e: FormEvent) {
     e.preventDefault()
-    setLoading(true)
 
-    if (!currentLocation || !image)
+    if (!coords || !sticker)
       return
 
+    setLoading(true)
+
+    const formData = new FormData()
+    formData.append("name", name)
+    formData.append("description", description)
+    formData.append("lat", String(coords.lat))
+    formData.append("lng", String(coords.lng))
+    formData.append("sticker", sticker as Blob)
+    if (photos)
+      Array.from(photos).forEach(photo => formData.append("photos", photo))
+
     try {
-      const spot = await spotPlace(image, currentLocation.lat, currentLocation.lng)
+      const spot = await addSpot(formData)
 
-      toast.success('Spot added successfully!')
+      toast.success(`Spot ${spot.name} added`)
 
-      onSubmit?.(spot)
+      mapInstance.setCenter(spot)
+      router.push('/')
     } catch (error: any) {
       toast.error(error.message)
     } finally {
@@ -92,50 +65,90 @@ const AddPlaceForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
   }
 
   return (
-    <form onSubmit={handleOnSubmit} className="flex flex-col gap-4">
-      {image
-        ? <>
-          <img
-            src={image}
-            className="bg-muted rounded-md"
-            style={{ width: '100%' }}
+    <form onSubmit={handleOnSubmit} className="p-4 overflow-y-auto">
+      <FieldGroup>
+        <FieldSet>
+          <FieldLegend>Basic</FieldLegend>
+          <FieldDescription>Basic input fields</FieldDescription>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="name">Name</FieldLabel>
+              <Input
+                id="name"
+                required
+                value={name}
+                onChange={e => setName(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="description">Description</FieldLabel>
+              <Textarea
+                id="description"
+                required
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+              />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+
+        <FieldSeparator/>
+
+        <FieldSet>
+          <FieldLegend>Location</FieldLegend>
+          <CoordinatePicker onValueChange={setCoords}/>
+        </FieldSet>
+
+        <FieldSeparator/>
+
+        <FieldSet>
+          <FieldLegend>Images</FieldLegend>
+          <Input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={e => setPhotos(e.target.files)}
+            className="border p-2 w-full"
           />
+          {photos && photos.length > 0 &&
+            <div className="grid grid-cols-3 gap-2">
+              {Array.from(photos).map((photo, index) => (
+                <img
+                  key={index}
+                  src={URL.createObjectURL(photo)}
+                  alt={`Photo ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-md"
+                />))}
+            </div>}
+        </FieldSet>
 
-          <div className="flex items-center gap-4">
-            <Button onClick={again} variant="outline" size="lg" className="font-semibold text-xl">
-              Retake
-            </Button>
+        <FieldSeparator/>
 
-            <Button type="submit" size="lg" className="flex-1 font-semibold text-xl flex items-center gap-1"
-                    disabled={loading}>
-              {loading && <LoaderCircleIcon size={20} className="animate-spin"/>}
-              <div>
-                Submit
-              </div>
-            </Button>
-          </div>
-        </>
-        : <>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="bg-muted rounded-md"
-            style={{ width: '100%' }}
+        <FieldSet>
+          <FieldLegend>Sticker</FieldLegend>
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={e => setStickers(e.target.files ? e.target.files[0] : null)}
+            className="border p-2 w-full"
           />
-          <canvas ref={canvasRef} style={{ display: 'none' }}/>
+          {sticker &&
+            <div className="grid grid-cols-3 gap-2">
+              <img
+                src={URL.createObjectURL(sticker)}
+                alt="Sticker"
+                className="w-full h-32 object-cover rounded-md"
+              />
+            </div>}
+        </FieldSet>
+      </FieldGroup>
 
-          <div className="flex items-center gap-4">
-            <Button onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
-                    size="lg" className="aspect-square">
-              <RefreshCcwIcon size={20}/>
-            </Button>
-            <Button onClick={captureImage}
-                    size="lg" className="flex-1 font-semibold text-xl">
-              Capture
-            </Button>
-          </div>
-        </>}
+      <div className="w-full flex justify-end">
+        <Button type="submit" className="mt-4 w-44" size="lg" disabled={loading}>
+          {loading && <LoaderCircleIcon size={20} className="animate-spin"/>}
+          Submit
+        </Button>
+      </div>
     </form>
   )
 }

@@ -18,7 +18,7 @@ export default async function SpotDetails(props: { params: Promise<Params> }) {
 
   return <>
     {typeof spot !== 'boolean'
-      && <main className="flex flex-col gap-4">
+      && <main className="flex flex-col gap-4 p-4 pb-0">
         <div
           className="aspect-[4/3] bg-muted flex flex-col items-center justify-center rounded-md p-4 sm:p-6 overflow-hidden">
           {spot.usersToSpots?.length > 0
@@ -33,7 +33,7 @@ export default async function SpotDetails(props: { params: Promise<Params> }) {
         </div>
       </main>}
 
-    <SheetHeader>
+    <SheetHeader className="pt-0">
       <SheetTitle>{spot.name}</SheetTitle>
       <SheetDescription className="mt-2">{spot.description}</SheetDescription>
     </SheetHeader>
