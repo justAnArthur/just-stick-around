@@ -1,61 +1,37 @@
 "use client"
 
 import { FC, FormEvent, ReactNode, useEffect, useState } from "react"
-import { useCamera } from "@/lib/utils"
-import { getAvailableSpots, spotPlace } from "@/app/(auth)/AddPlaceDialog.actions"
+import { getAvailableSpots, spotPlace } from "./actions"
 import type { Spot } from "@/database/schema"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { LoaderCircleIcon, RefreshCcwIcon } from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useLocationContext } from "@/app/(auth)/LocationProvider"
 import { toast } from "sonner"
-import { mapInstance } from "@/app/(auth)/Map"
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { useRouter } from "next/navigation"
+import { useCamera } from "@/lib/useCamera"
 
-const openListeners = [] as (() => void)[]
+export default function AddPlace() {
+  const router = useRouter()
 
-export function openAddPlaceDialog() {
-  openListeners.forEach(listener => listener())
-}
-
-export const AddPlaceDialog: FC = () => {
-  const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    const listener = () => setOpen(true)
-
-    openListeners.push(listener)
-
-    return () => {
-      const index = openListeners.indexOf(listener)
-      if (index > -1)
-        openListeners.splice(index, 1)
-    }
-  }, [])
-
-  function handleOnSubmit(spot: Spot) {
-    setOpen(false)
-
-    mapInstance.setCenter({ lat: spot.lat, lng: spot.lng })
+  function handleOnSubmit() {
+    router.push('/')
   }
 
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent side="bottom" className="max-w-2xl mx-auto inset-x-4 rounded-md bottom-4">
-        <SheetHeader>
-          <SheetTitle className="sr-only">Adding new spot</SheetTitle>
-          <main>
-            <AddPlaceCheckWrapper>
-              <AddPlaceForm onSubmit={handleOnSubmit}/>
-            </AddPlaceCheckWrapper>
-          </main>
-        </SheetHeader>
-      </SheetContent>
-    </Sheet>
-  )
+  return <>
+    <SheetHeader className="sr-only">
+      <SheetTitle>Adding new spot</SheetTitle>
+    </SheetHeader>
+    <main className="p-4">
+      <AddPlaceCheckWrapper>
+        <AddPlaceForm onSubmit={handleOnSubmit}/>
+      </AddPlaceCheckWrapper>
+    </main>
+  </>
 }
 
-export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
+const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
   { children }
 ) => {
   const currentLocation = useLocationContext()
@@ -68,6 +44,8 @@ export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
 
     getAvailableSpots(currentLocation.lat, currentLocation.lng).then(setAvailableSpots)
   }, [currentLocation])
+
+  console.log(availableSpots)
 
   if (!(currentLocation && availableSpots))
     return <Skeleton className="w-full aspect-[4/3]"/>
@@ -84,7 +62,7 @@ export const AddPlaceCheckWrapper: FC<{ children: ReactNode }> = (
   </>
 }
 
-export const AddPlaceForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
+const AddPlaceForm: FC<{ onSubmit?: (spot: Spot) => void }> = (
   { onSubmit }
 ) => {
   const currentLocation = useLocationContext()

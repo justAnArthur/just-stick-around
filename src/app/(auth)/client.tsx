@@ -2,11 +2,11 @@
 
 import { GoogleMap, GoogleMapProps, Marker, useLoadScript } from '@react-google-maps/api'
 import { useRef, useState } from "react"
-import { getSpotsForCoordinates } from "@/app/(auth)/Map.actions"
+import { getSpotsForCoordinates } from "@/app/(auth)/actions"
 import type { SpotWithFileNUsers } from "@/database/schema"
 import { Skeleton } from "@/components/ui/skeleton"
-import { openSpotDetailsDialog } from "@/app/(auth)/SpotDetailsDialog"
 import { useLocationContext } from "@/app/(auth)/LocationProvider"
+import { useRouter } from "next/navigation"
 
 const defaultCenter = ({
   lat: 50.067005,
@@ -16,12 +16,13 @@ const defaultCenter = ({
 export let mapInstance: google.maps.Map
 
 export default function StickerMap() {
-  const { isLoaded } = useLoadScript({ googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY! })
+  const router = useRouter()
 
+  const { isLoaded } = useLoadScript({ googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY! })
   const [map, setMap] = useState<google.maps.Map | undefined>()
+  const currentLocation = useLocationContext()
 
   const [spots, setSpots] = useState<SpotWithFileNUsers[]>()
-
   async function loadSpots() {
     if (!map)
       return
@@ -35,7 +36,6 @@ export default function StickerMap() {
   }
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
-
   function debouncedLoadSpots() {
     if (debounceRef.current)
       clearTimeout(debounceRef.current)
@@ -44,8 +44,6 @@ export default function StickerMap() {
       loadSpots()
     }, 2000)
   }
-
-  const currentLocation = useLocationContext()
 
   if (!isLoaded)
     return <Skeleton className="w-full h-full"/>
@@ -73,7 +71,7 @@ export default function StickerMap() {
               scaledSize: new google.maps.Size(size, size),
               anchor: new google.maps.Point(size / 2, size / 2)
             }}
-            onClick={() => openSpotDetailsDialog(spot)}
+            onClick={() => router.push(`/spots/${spot.id}`)}
           />
         )
       })}

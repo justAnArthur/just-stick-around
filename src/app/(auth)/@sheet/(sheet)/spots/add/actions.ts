@@ -2,24 +2,30 @@
 
 import { db } from "@/database/db"
 import { files, Spot, spots, usersSpots } from "@/database/schema"
-import { sql } from "drizzle-orm"
+import { and, eq, isNull, sql } from "drizzle-orm"
 import OpenAI from "openai"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import path from "path"
 
 export async function getAvailableSpots(lat: number, lng: number, maxDistance: number = 0.001 /* roughly within 100 meters */) {
-  return db.select()
+  return (await db.select()
     .from(spots)
-    .where(sql`
-      (6371 * acos(
-        cos(radians(${lat})) * cos(radians(${spots.lat})) *
-        cos(radians(${spots.lng}) - radians(${lng})) +
-        sin(radians(${lat})) * sin(radians(${spots.lat}))
-        ))
-      <
-      ${maxDistance * 111.139}
-    `) // convert degrees to km (1 deg ≈ 111.139 km)
+    .leftJoin(usersSpots, eq(spots.id, usersSpots.spotId))
+    .where(and(
+      sql`
+        (6371 * acos(
+          cos(radians(${lat})) * cos(radians(${spots.lat})) *
+          cos(radians(${spots.lng}) - radians(${lng})) +
+          sin(radians(${lat})) * sin(radians(${spots.lat}))
+          ))
+        <
+        ${maxDistance * 111.139}
+      `, // convert degrees to km (1 deg ≈ 111.139 km)
+      isNull(usersSpots.spotId) // searching for non-taken
+    ))
+    .execute())
+    .map(({ spots }) => spots)
 }
 
 export async function spotPlace(image: string, lat: number, lng: number) {

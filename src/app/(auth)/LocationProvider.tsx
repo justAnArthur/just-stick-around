@@ -1,8 +1,8 @@
 "use client"
 
 import { createContext, FC, ReactNode, useContext } from "react"
-import { useCurrentLocation } from "@/lib/utils"
 import { toast } from "sonner"
+import { useCurrentLocation } from "@/lib/useCurrentLocation"
 
 const LocationContext = createContext<ReturnType<typeof useCurrentLocation> | undefined>(undefined)
 

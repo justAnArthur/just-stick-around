@@ -1,23 +1,19 @@
 "use client"
 
 import type { FC, ReactNode } from "react"
-import { AddPlaceDialog, openAddPlaceDialog } from "@/app/(auth)/AddPlaceDialog"
 import Link from "next/link"
-import { MapIcon, PlusIcon, UserIcon } from "lucide-react"
-import { SpotDetailsDialog } from "@/app/(auth)/SpotDetailsDialog"
+import { MapIcon, PlusIcon, StickerIcon } from "lucide-react"
 import { LocationProvider } from "@/app/(auth)/LocationProvider"
 
-export default function AuthLayout(props: { children: ReactNode }) {
-  return <>
+export default function AuthLayout(props: { children: ReactNode, sheet: ReactNode }) {
+  return (
     <LocationProvider>
       {props.children}
+      {props.sheet}
 
       <Navigation/>
-
-      <SpotDetailsDialog/>
-      <AddPlaceDialog/>
     </LocationProvider>
-  </>
+  )
 }
 
 const Navigation: FC = () => {
@@ -26,19 +22,22 @@ const Navigation: FC = () => {
       className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-card text-card-foreground px-2 py-1 rounded-full shadow-md border border-border">
       <ul className="flex items-center gap-3">
         <li>
-          <Link href="/" className="block hover:bg-background p-3 hover:no-underline rounded-md">
+          <Link href="/" className="block hover:bg-background active:bg-background p-3 hover:no-underline rounded-xl">
             <MapIcon size={20}/>
           </Link>
         </li>
         <li>
-          <Link href="/profile" className="block hover:bg-background p-3 hover:no-underline rounded-md">
-            <UserIcon size={20}/>
+          <Link href="/spots"
+                className="block hover:bg-background active:bg-background p-3 hover:no-underline rounded-xl">
+            <StickerIcon size={20}/>
           </Link>
         </li>
         <li>
-          <button type="button" onClick={openAddPlaceDialog} className="hover:bg-background p-3 rounded-md">
+          <Link href="/spots/add"
+                className="block hover:bg-background active:bg-background p-3 hover:no-underline rounded-xl">
             <PlusIcon size={20}/>
-          </button>
+          </Link>
+
         </li>
       </ul>
     </nav>

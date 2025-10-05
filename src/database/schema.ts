@@ -56,7 +56,7 @@ export const usersSpots = pgTable(
 
 export type UsersToSpots = typeof usersSpots.$inferSelect
 
-export const usersToGroupsRelations = relations(usersSpots, ({ one }) => ({
+export const usersToSpotsRelations = relations(usersSpots, ({ one }) => ({
   spot: one(spots, {
     fields: [usersSpots.spotId],
     references: [spots.id]
