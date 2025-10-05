@@ -13,5 +13,5 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true
   },
-  trustedOrigins: process.env.NEXT_PUBLIC_TRUSTED_ORIGINS.split(',')
+  trustedOrigins: process.env.NEXT_PUBLIC_TRUSTED_ORIGINS?.split(',') || []
 })
